@@ -110,4 +110,20 @@ screenshots/          # Panduan dan tempat menyimpan screenshot aplikasi
 
 ## Screenshot
 
-Folder [`screenshots`](screenshots/README.md) disiapkan untuk gambar aplikasi. Tambahkan screenshot di sana jika ingin menampilkan tampilan GameHub di README.
+Tambahkan gambar berikut ke folder [`screenshots`](screenshots/README.md). Setelah file diunggah ke GitHub, gambar akan tampil langsung di halaman README.
+
+### Dashboard
+
+![Dashboard GameHub](screenshots/dashboard.png)
+
+### Sesi rental
+
+![Halaman sesi rental GameHub](screenshots/rentals.png)
+
+### Checkout dan pembayaran
+
+![Checkout dan pembayaran GameHub](screenshots/checkout.png)
+
+### Laporan
+
+![Laporan GameHub](screenshots/reports.png)
