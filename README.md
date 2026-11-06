@@ -1,151 +1,113 @@
-# GameHub — POS & Billing untuk Rental PS/PC
+# GameHub
 
-Aplikasi point-of-sale dan manajemen billing berbasis web untuk bisnis rental PlayStation (PS) dan PC gaming. Dibangun dengan React + Vite + Tailwind CSS + Zustand, tanpa backend atau layanan eksternal berbayar.
+**Sistem POS dan billing untuk rental PlayStation (PS) dan PC**
 
----
+GameHub membantu operator mengelola sesi rental, penjualan makanan dan minuman, pembayaran, stok, serta promosi dalam satu aplikasi. Pemilik usaha dapat melihat ringkasan performa, laporan pendapatan, dan riwayat transaksi.
 
-## Cara Menjalankan
+## Fitur
+
+- **Dashboard** — ringkasan transaksi dan pendapatan, grafik, performa unit, produk terlaris, serta status unit. Dashboard dimulai dalam keadaan kosong dan menampilkan petunjuk saat belum ada unit atau transaksi.
+- **Sesi rental dan kasir** — mulai sesi Open Bill, durasi tetap, atau paket; jeda dan lanjutkan timer; lihat tagihan berjalan; tambahkan F&B; dan lakukan checkout.
+- **Pembayaran** — dukungan Cash, QRIS, Transfer Bank, dan E-wallet. Pembayaran dapat dibagi ke beberapa metode; jika jumlah yang dibayarkan melebihi tagihan, sistem menghitung kembalian.
+- **Unit** — tambah, lihat, ubah, dan hapus unit PS atau PC beserta tarif per jam dan statusnya.
+- **Produk dan paket** — kelola produk makanan/minuman, harga dan stok; buat paket berisi durasi rental dan item F&B.
+- **Promosi** — diskon persentase atau nominal dengan cakupan seluruh transaksi, rental, F&B, makanan, atau minuman.
+- **Laporan** — ringkasan pendapatan per bulan atau rentang tanggal khusus, grafik pendapatan harian dan tren bulanan, serta rincian penjualan.
+- **Riwayat transaksi** — cari transaksi, lihat detail, edit catatan, catat refund penuh atau sebagian, dan tandai transaksi sebagai dibatalkan.
+
+## Teknologi
+
+- React 19
+- Vite 8
+- Tailwind CSS 3
+- Zustand 5 untuk state dan persistensi lokal
+- React Router 7
+- Recharts 3
+- Lucide React
+- date-fns 4
+
+## Menjalankan aplikasi
 
 ### Prasyarat
-- Node.js ≥ 18
-- npm ≥ 9
 
-### Instalasi & Jalankan
+- Node.js `^20.19.0` atau `>=22.12.0`
+- npm
+
+### Instalasi dan mode pengembangan
+
+Jalankan perintah dari folder proyek:
 
 ```bash
-cd gamehub
 npm install
 npm run dev
 ```
 
-Buka browser di `http://localhost:5173`.
+Buka alamat yang ditampilkan Vite di terminal (biasanya `http://localhost:5173`).
 
-### Build untuk Produksi
+### Build dan pratinjau produksi
 
 ```bash
 npm run build
 npm run preview
 ```
 
----
+### Pemeriksaan kode
 
-## Fitur Utama
-
-| Modul | Fitur |
-|---|---|
-| **Dashboard** | Statistik hari ini, pendapatan bulan ini, grafik 14 hari, grid status unit, F&B terlaris, unit terbaik |
-| **Rental & POS** | Sesi open bill, durasi tetap, paket; jeda/lanjut; timer countdown; keranjang F&B; checkout split payment |
-| **Unit** | CRUD unit PS/PC dengan tarif per jam; proteksi hapus jika ada sesi aktif |
-| **Produk & Paket** | CRUD produk F&B dengan stok; CRUD paket dengan item termasuk |
-| **Promosi** | Diskon persentase/nominal dengan scope (semua/rental/F&B/makanan/minuman) |
-| **Laporan** | Filter per bulan / rentang tanggal, grafik harian, grafik tren 12 bulan, breakdown per kategori |
-| **Transaksi** | Riwayat dengan pencarian; refund penuh/sebagian; void transaksi; edit catatan |
-
----
-
-## Penjelasan Teknis
-
-### Billing
-
-#### Open Bill
-Waktu tertagih dihitung dari segmen aktif (non-jeda):
-```
-Biaya = tarif_per_jam × total_menit_aktif / 60
-```
-Waktu jeda **tidak dihitung** ke tagihan.
-
-#### Durasi Tetap
-Operator memilih durasi dalam jam. Sistem memulai countdown. Saat habis:
-- Notifikasi visual + audio (Web Audio API)
-- Unit tetap ditandai "terpakai"
-- Operator dapat menambah jam atau mengakhiri sesi
-- Tambahan jam ditagih terpisah; pembayaran tidak diperlukan sebelum perpanjangan
-
-#### Paket
-Paket memiliki harga tetap, durasi termasuk, dan item F&B termasuk. Paket muncul sebagai satu baris tagihan (tidak ada harga individual per item). Durasi paket digunakan sebagai countdown.
-
-### Pembulatan
-Setelah diskon, total dibulatkan ke kelipatan Rp500 terdekat:
-```
-sisa = total % 500
-jika sisa < 250 → bulatkan ke bawah (total - sisa)
-jika sisa ≥ 250 → bulatkan ke atas (total - sisa + 500)
+```bash
+npm run lint
 ```
 
-### Stok
-- Stok dikurangi saat transaksi berhasil disimpan (setelah konfirmasi checkout)
-- Checkout diblokir jika stok tidak mencukupi, dengan pesan yang jelas
-- Paket dengan item F&B mengurangi stok item tersebut
+## Aturan bisnis
 
-### Refund & Void
-- **Refund penuh/sebagian**: mencatat jumlah, metode, dan catatan. Pendapatan bersih = total - refund
-- **Void**: transaksi ditandai "dibatalkan" dan dikecualikan dari semua laporan
-- Transaksi **tidak pernah dihapus secara permanen**
+### Tarif rental
 
-### Split Payment
-Operator dapat menambahkan beberapa metode pembayaran (Cash, QRIS, Transfer Bank, E-wallet). Total yang dimasukkan harus ≥ total bayar sebelum checkout bisa disimpan.
+Tarif rental bersifat linear dan dihitung berdasarkan durasi yang dapat ditagih:
 
-### Format Uang
-Semua nilai dalam IDR. Format: `Rp15.000` menggunakan `toLocaleString('id-ID')`.
-
----
-
-## Persistensi Data
-
-Semua data (unit, produk, paket, sesi, transaksi, promosi) disimpan di **localStorage** browser menggunakan Zustand `persist` middleware.
-
-**Keterbatasan localStorage:**
-- Data hanya tersimpan di browser & perangkat yang sama
-- Kapasitas terbatas sekitar 5–10 MB (cukup untuk ribuan transaksi)
-- Data hilang jika pengguna membersihkan data browser / private mode
-- Tidak ada sinkronisasi antar perangkat
-- Tidak ada backup otomatis
-
-**Untuk penggunaan produksi**, pertimbangkan menambahkan backend (Node.js + SQLite/PostgreSQL) dan mengganti store Zustand dengan panggilan API.
-
----
-
-## Struktur Proyek
-
-```
-gamehub/
-├── src/
-│   ├── components/
-│   │   ├── Layout.jsx        # Sidebar + navigasi utama
-│   │   ├── Modal.jsx         # Komponen modal reusable
-│   │   └── ConfirmDialog.jsx # Dialog konfirmasi
-│   ├── pages/
-│   │   ├── Dashboard.jsx     # Halaman utama & statistik
-│   │   ├── Rentals.jsx       # POS & manajemen sesi
-│   │   ├── Units.jsx         # CRUD unit PS/PC
-│   │   ├── Products.jsx      # CRUD produk & paket
-│   │   ├── Promotions.jsx    # CRUD promosi
-│   │   ├── Reports.jsx       # Laporan & grafik
-│   │   └── Transactions.jsx  # Riwayat transaksi
-│   ├── stores/
-│   │   ├── unitStore.js      # State unit
-│   │   ├── productStore.js   # State produk & paket
-│   │   ├── sessionStore.js   # State sesi rental
-│   │   ├── transactionStore.js # State transaksi
-│   │   └── promoStore.js     # State promosi
-│   ├── utils/
-│   │   └── index.js          # Format, kalkulasi, validasi
-│   └── App.jsx
-├── tailwind.config.js
-└── package.json
+```text
+Biaya rental = tarif per jam × menit tertagih ÷ 60
 ```
 
----
+Waktu sesi yang dijeda tidak dihitung. Sesi **Open Bill** ditagih berdasarkan waktu aktif. Sesi berdurasi tetap menggunakan hitung mundur; ketika waktunya habis, operator mendapat pemberitahuan visual dan audio, lalu dapat menambah durasi atau mengakhiri sesi. Waktu tambahan ditambahkan ke tagihan akhir.
 
-## Stack Teknologi
+Paket ditampilkan sebagai satu item dengan harga paket. Durasi dan F&B yang termasuk ditampilkan sebagai rincian tanpa harga per item. Jika item paket tidak tersedia, operator dapat menggantinya dengan item berharga sama atau lebih rendah. Harga paket tidak berubah.
 
-| Library | Versi | Fungsi |
-|---|---|---|
-| React | 19 | UI framework |
-| Vite | 8 | Build tool |
-| Tailwind CSS | 3 | Styling |
-| Zustand | 5 | State management + localStorage |
-| React Router DOM | 7 | Routing |
-| Recharts | 2 | Grafik & chart |
-| Lucide React | latest | Ikon |
-| date-fns | latest | Utilitas tanggal |
+### Diskon dan pembulatan
+
+Diskon diterapkan pada item yang sesuai dengan cakupan promo. Setelah diskon, total pembayaran dibulatkan ke kelipatan Rp500 terdekat. Pada nilai tepat di tengah, pembulatan dilakukan ke atas.
+
+Contoh:
+
+- Rp10.010 menjadi Rp10.000
+- Rp10.250 menjadi Rp10.500
+- Rp10.260 menjadi Rp10.500
+
+### Stok dan transaksi
+
+Stok produk berkurang saat checkout berhasil, termasuk untuk item F&B yang termasuk dalam paket. Checkout tidak dapat diselesaikan jika stok produk yang diperlukan tidak mencukupi.
+
+Refund penuh maupun sebagian dicatat pada transaksi. Transaksi yang dibatalkan tetap disimpan sebagai catatan dan dikecualikan dari laporan pendapatan. Fitur edit transaksi saat ini digunakan untuk mengubah catatan transaksi.
+
+## Penyimpanan data
+
+Data unit, produk, paket, sesi, promosi, dan transaksi disimpan di `localStorage` browser melalui middleware persist Zustand.
+
+Konsekuensinya, data hanya tersedia pada browser dan perangkat tempat aplikasi digunakan. Data tidak tersinkron antarperangkat atau pengguna, dan dapat terhapus jika data browser dibersihkan. Aplikasi ini belum menggunakan backend atau pencadangan otomatis.
+
+## Struktur proyek
+
+```text
+src/
+├── components/       # Layout, modal, dan dialog konfirmasi
+├── pages/            # Dashboard, Rentals, Units, Products, Promotions,
+│                     # Reports, dan Transactions
+├── stores/           # Penyimpanan state berbasis Zustand
+├── utils/            # Format Rupiah, billing, diskon, dan validasi stok
+├── App.jsx
+└── main.jsx
+public/               # Ikon dan aset publik
+screenshots/          # Panduan dan tempat menyimpan screenshot aplikasi
+```
+
+## Screenshot
+
+Folder [`screenshots`](screenshots/README.md) disiapkan untuk gambar aplikasi. Tambahkan screenshot di sana jika ingin menampilkan tampilan GameHub di README.
